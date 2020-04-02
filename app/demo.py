@@ -15,17 +15,29 @@ customer_table = app.Table("customer_table", default=int, partitions=1)
 
 purchase_topic = app.topic("purchase_topic", value_type=PurchaseRecord, partitions=1)
 
+purchase_note_topic = app.topic("purchase_note_topic", value_type=PurchaseRecord, partitions=1)
+
 
 def handle_purchase(purchase):
     customer_table[purchase.customer] = customer_table[purchase.customer] + purchase.amount
     print(f"{purchase.customer} has spent {customer_table[purchase.customer]} so far.")
 
-@app.agent(purchase_topic)
+@app.agent(purchase_topic, sink=[purchase_note_topic])
 async def purchase_processor(purchases: AsyncIterable[PurchaseRecord]):
     """Accumulate purchases."""
     async for purchase in purchases:
         print("Processing: ", purchase)
         handle_purchase(purchase)
+        yield purchase
+
+@app.agent(purchase_note_topic)
+async def note_processor(purchases: AsyncIterable[PurchaseRecord]):
+    """Check for purchase notes."""
+    async for purchase in purchases:
+        if purchase.note:
+            print(f"{purchase.customer} says: {purchase.note}.")
+
+
 
 @app.page("/customer/{customer_id}")
 async def joiner_count(self, request, customer_id):
