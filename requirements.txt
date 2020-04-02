@@ -1,0 +1,2 @@
+kafka-python==1.4.7
+faust==1.9.0

@@ -1,7 +1,7 @@
 import uuid
 from random import randint
 
-from kafka import KafkaProducer, KafkaAdminClient
+from kafka import KafkaProducer
 
 from .demo import PurchaseRecord
 
