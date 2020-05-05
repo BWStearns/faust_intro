@@ -30,14 +30,11 @@ def customer_is_done(customer):
         or customer.amount > 5000
         or random.randint(1, 100) == 1)
 
-
-latest_customer = {}
-
-@app.agent(customer_topic)
+@app.agent(customer_topic, concurrency=20)
 async def purchase_processor(customers: AsyncIterable[CustomerRecord]):
     """Process customer purchases."""
     async for customer in customers:
-        latest_customer = ring_up_customer(customer)
+        ring_up_customer(customer)
         if customer_is_done(customer):
             print(f"{customer.customer} spent {customer.amount / customer.number_of_purchases} on average.")
             print(customer)
